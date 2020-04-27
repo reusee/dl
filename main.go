@@ -39,10 +39,11 @@ func main() {
 	var filename string
 	dispositionHeader := resp.Header.Get("Content-Disposition")
 	disposition, params, err := mime.ParseMediaType(dispositionHeader)
-	ce(err, "parse Content-Disposition header")
-	if disposition == "attachment" {
-		if name, ok := params["filename"]; ok {
-			filename = name
+	if err == nil {
+		if disposition == "attachment" {
+			if name, ok := params["filename"]; ok {
+				filename = name
+			}
 		}
 	}
 	if filename == "" {
@@ -55,11 +56,14 @@ func main() {
 		panic(me(nil, "file exists: %s", filename))
 	}
 
-	f, err := os.Create(filename)
-	ce(err, "create %s", filename)
-	defer f.Close()
+	tmpFilename := filename + ".tmp"
+	f, err := os.Create(tmpFilename)
+	ce(err, "create %s", tmpFilename)
 
 	_, err = io.Copy(f, resp.Body)
 	ce(err)
+
+	ce(f.Close())
+	ce(os.Rename(tmpFilename, filename))
 
 }
