@@ -22,7 +22,9 @@ func main() {
 
 	addr := args[0]
 
-	dialer := proxy.FromEnvironment()
+	//dialer := proxy.FromEnvironment()
+	dialer, err := proxy.SOCKS5("tcp", "10.0.0.4:9103", nil, proxy.Direct)
+	ce(err)
 	ctxDialer := dialer.(proxy.ContextDialer)
 	client := &http.Client{
 		Transport: &http.Transport{
@@ -69,7 +71,7 @@ do:
 	f, err := os.Create(tmpFilename)
 	ce(err, "create %s", tmpFilename)
 
-	buf := make([]byte, 8192)
+	buf := make([]byte, 512)
 	c := 0
 	for {
 		n, err := resp.Body.Read(buf)
